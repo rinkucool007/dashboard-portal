@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://moment.github.io/luxon/global/luxon.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            transition: all 0.2s ease;
+        }
+        .page-transition {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center gradient-bg p-4">
+        <div class="bg-white rounded-xl p-8 w-full max-w-md card-shadow">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Enterprise Portal</h1>
+                <p class="text-gray-600 mt-2">Sign in to access your dashboard</p>
+            </div>
+            <div id="login-form" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" id="username" name="username" required 
+                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter your username">
+                    </div>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400"></i>
+                        </div>
+                        <input type="password" id="password" name="password" required 
+                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter your password">
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" 
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700">Remember me</label>
+                    </div>
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Forgot password?</a>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="handleLogin()" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                        Sign in
+                    </button>
+                </div>
+            </div>
+            <div class="mt-6 text-center text-sm text-gray-600">
+                <p>Don't have an account? <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Contact admin</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboard-page" class="hidden min-h-screen">
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <img src="https://via.placeholder.com/40" alt="Logo" class="h-8 w-8 mr-3">
+                    <h1 class="text-lg font-semibold text-gray-900 whitespace-nowrap">Welcome to Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button onclick="logout()" class="py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <button onclick="loadTestPage('test1')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-flask text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test1</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+                <button onclick="loadTestPage('test2')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-microscope text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test2</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+                <button onclick="loadTestPage('test3')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-vial text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test3</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+                <button onclick="loadTestPage('test4')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-atom text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test4</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+                <button onclick="loadTestPage('test5')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-dna text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test5</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+                <button onclick="loadTestPage('test6')" class="btn-hover bg-blue-600 hover:bg-green-600 text-white font-medium py-12 rounded-xl text-center transition duration-300 ease-in-out transform hover:scale-105 card-shadow">
+                    <i class="fas fa-virus text-3xl mb-2"></i>
+                    <h3 class="text-xl font-semibold">Test6</h3>
+                    <p class="text-blue-100 mt-1">Project Dashboard</p>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Test Project Page -->
+    <div id="test-page" class="hidden min-h-screen">
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center">
+                    <button onclick="backToDashboard()" class="mr-4 p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <img src="https://via.placeholder.com/40" alt="Logo" class="h-8 w-8 mr-3">
+                    <h1 id="test-page-title" class="text-xl font-semibold text-gray-900"></h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button onclick="logout()" class="py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Daily Report -->
+                <div class="bg-white rounded-xl shadow-sm p-6 page-transition">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Daily Report</h2>
+                        <input type="date" id="daily-date" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                    </div>
+                    <div class="h-64">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                    <div class="mt-6 grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-xs text-blue-500 font-medium">Total Tests</p>
+                            <p id="daily-total" class="text-lg font-semibold text-blue-800">0</p>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <p class="text-xs text-green-500 font-medium">Passed</p>
+                            <p id="daily-passed" class="text-lg font-semibold text-green-800">0</p>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-lg">
+                            <p class="text-xs text-red-500 font-medium">Failed</p>
+                            <p id="daily-failed" class="text-lg font-semibold text-red-800">0</p>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded-lg">
+                            <p class="text-xs text-yellow-500 font-medium">Skipped</p>
+                            <p id="daily-skipped" class="text-lg font-semibold text-yellow-800">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weekly Report -->
+                <div class="bg-white rounded-xl shadow-sm p-6 page-transition">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Weekly Report</h2>
+                        <input type="date" id="weekly-date" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                    </div>
+                    <div class="h-64">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                    <div class="mt-6 grid grid-cols-3 gap-4">
+                        <div class="bg-purple-50 p-3 rounded-lg">
+                            <p class="text-xs text-purple-500 font-medium">Avg Pass Rate</p>
+                            <p id="weekly-avg-pass" class="text-lg font-semibold text-purple-800">0%</p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-lg">
+                            <p class="text-xs text-indigo-500 font-medium">Total Tests</p>
+                            <p id="weekly-total" class="text-lg font-semibold text-indigo-800">0</p>
+                        </div>
+                        <div class="bg-pink-50 p-3 rounded-lg">
+                            <p class="text-xs text-pink-500 font-medium">Stability</p>
+                            <p id="weekly-stability" class="text-lg font-semibold text-pink-800">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Table -->
+            <div class="bg-white rounded-xl shadow-sm p-6 page-transition">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Detailed Results</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passed</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Failed</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Broken</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skipped</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unknown</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination Controls -->
+                <div class="mt-6 flex items-center justify-between">
+                    <button onclick="goToPreviousPage()" id="prev-page" class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        Previous
+                    </button>
+                    <div id="pagination-info" class="text-sm text-gray-700"></div>
+                    <button onclick="goToNextPage()" id="next-page" class="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

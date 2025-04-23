@@ -1,0 +1,74 @@
+[
+    {
+        "Date": "2025-04-22",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "10",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-21",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "10",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-20",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "10",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-19",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "10",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-18",
+        "Failed": "1",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "9",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-17",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "1",
+        "Passed": "9",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-16",
+        "Failed": "2",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "8",
+        "Unknown": "0",
+        "Total": "10"
+    },
+    {
+        "Date": "2025-04-15",
+        "Failed": "0",
+        "Broken": "0",
+        "Skipped": "0",
+        "Passed": "10",
+        "Unknown": "0",
+        "Total": "10"
+    }
+]
