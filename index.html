@@ -26,6 +26,32 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        #chat-window {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .chat-message {
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #3b82f6;
+            color: white;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        #chatbot-logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -87,7 +113,7 @@
         <header class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
                 <div class="flex items-center">
-                    <img src="https://via.placeholder.com/40" alt="Logo" class="h-8 w-8 mr-3">
+                    <img src="logo.png" alt="Logo" class="h-8 w-8 mr-3">
                     <h1 class="text-lg font-semibold text-gray-900 whitespace-nowrap">Welcome to Dashboard</h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -144,7 +170,7 @@
                     <button onclick="backToDashboard()" class="mr-4 p-1 rounded-full text-gray-500 hover:text-gray-700 focus:outline-none">
                         <i class="fas fa-arrow-left"></i>
                     </button>
-                    <img src="https://via.placeholder.com/40" alt="Logo" class="h-8 w-8 mr-3">
+                    <img src="logo.png" alt="Logo" class="h-8 w-8 mr-3">
                     <h1 id="test-page-title" class="text-xl font-semibold text-gray-900"></h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -158,6 +184,22 @@
             </div>
         </header>
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <!-- Chatbot Logo -->
+            <img id="chatbot-logo" src="bot.png" alt="Chatbot" class="h-12 w-12 rounded-full shadow-md" onclick="toggleChatWindow()">
+            <!-- Chat Window -->
+            <div id="chat-window" class="hidden fixed bottom-20 right-4 bg-white rounded-xl shadow-lg w-80 p-4 card-shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Project Chatbot</h3>
+                    <button onclick="toggleChatWindow()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="chat-messages" class="mb-4"></div>
+                <div class="flex">
+                    <input type="text" id="chat-input" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ask about project data...">
+                    <button onclick="sendMessage()" class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700">Send</button>
+                </div>
+            </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Daily Report -->
                 <div class="bg-white rounded-xl shadow-sm p-6 page-transition">
