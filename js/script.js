@@ -20,6 +20,10 @@ const resultsTableBody = document.getElementById('results-table-body');
 const prevPageButton = document.getElementById('prev-page');
 const nextPageButton = document.getElementById('next-page');
 const paginationInfo = document.getElementById('pagination-info');
+const chatWindow = document.getElementById('chat-window');
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatbotLogo = document.getElementById('chatbot-logo');
 
 // Login handler
 function handleLogin() {
@@ -29,6 +33,7 @@ function handleLogin() {
     if (username === 'admin' && password === 'password') {
         loginPage.classList.add('hidden');
         dashboardPage.classList.remove('hidden');
+        chatbotLogo.classList.add('hidden'); // Hide chatbot logo on dashboard
     } else {
         alert('Invalid credentials. Please try again.');
     }
@@ -39,6 +44,7 @@ function logout() {
     dashboardPage.classList.add('hidden');
     testPage.classList.add('hidden');
     loginPage.classList.remove('hidden');
+    chatbotLogo.classList.add('hidden'); // Hide chatbot logo on login
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
 }
@@ -57,10 +63,17 @@ async function loadTestPage(testName) {
     dailyDateInput.value = today.toISODate();
     weeklyDateInput.value = today.toISODate();
     
+    // Reset chatbot
+    chatWindow.classList.add('hidden');
+    chatMessages.innerHTML = '';
+    chatInput.value = '';
+    chatbotLogo.classList.remove('hidden'); // Show chatbot logo on test page
+    
     // Load data
     try {
         const data = await loadTestData(testName);
         currentData = data;
+        console.log('Loaded currentData:', currentData); // Debug data loading
         currentPage = 1;
         totalPages = Math.ceil(data.length / recordsPerPage);
         
@@ -89,6 +102,7 @@ async function loadTestPage(testName) {
 function backToDashboard() {
     testPage.classList.add('hidden');
     dashboardPage.classList.remove('hidden');
+    chatbotLogo.classList.add('hidden'); // Hide chatbot logo on dashboard
     
     // Destroy charts to prevent memory leaks
     if (dailyChart) dailyChart.destroy();
@@ -125,18 +139,15 @@ function updateDailyChart(date, data) {
     
     // Update stats
     if (!dailyData) {
-        // No matching date found
         document.getElementById('daily-total').textContent = 'NA';
         document.getElementById('daily-passed').textContent = 'NA';
         document.getElementById('daily-failed').textContent = 'NA';
         document.getElementById('daily-skipped').textContent = 'NA';
         
-        // Set chart data to zeros
         var chartData = {
             Total: "0", Passed: "0", Failed: "0", Skipped: "0", Broken: "0", Unknown: "0"
         };
     } else {
-        // Matching date found
         document.getElementById('daily-total').textContent = dailyData.Total;
         document.getElementById('daily-passed').textContent = dailyData.Passed;
         document.getElementById('daily-failed').textContent = dailyData.Failed;
@@ -298,6 +309,11 @@ function updateWeeklyChart(endDate, data) {
 
 // Update results table with pagination
 function updateResultsTable() {
+    if (!resultsTableBody) {
+        console.error('Error: resultsTableBody element not found (ID: results-table-body)');
+        return;
+    }
+    
     resultsTableBody.innerHTML = '';
     
     const startIndex = (currentPage - 1) * recordsPerPage;
@@ -357,9 +373,226 @@ function formatDisplayDate(dateStr) {
     return dt.toFormat('ccc, LLL d');
 }
 
+// Chatbot functions
+function toggleChatWindow() {
+    chatWindow.classList.toggle('hidden');
+    if (!chatWindow.classList.contains('hidden')) {
+        chatInput.focus();
+        // Add welcome message if chat is empty
+        if (chatMessages.innerHTML === '') {
+            const welcomeMessage = document.createElement('div');
+            welcomeMessage.className = 'chat-message bot-message';
+            welcomeMessage.textContent = `Welcome to ${currentTest.charAt(0).toUpperCase() + currentTest.slice(1)} Project`;
+            chatMessages.appendChild(welcomeMessage);
+        }
+        // Scroll to the bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Add user message
+    const userMessage = document.createElement('div');
+    userMessage.className = 'chat-message user-message';
+    userMessage.textContent = message;
+    chatMessages.appendChild(userMessage);
+
+    // Process query and get bot response
+    const botResponse = processUserQuery(message);
+    const botMessage = document.createElement('div');
+    botMessage.className = 'chat-message bot-message';
+    botMessage.textContent = botResponse;
+    chatMessages.appendChild(botMessage);
+
+    // Clear input and scroll to bottom
+    chatInput.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Process user query about JSON data
+function processUserQuery(query) {
+    console.log('Processing query:', query);
+
+    if (!currentData || currentData.length === 0) {
+        console.log('Error: currentData is empty or not loaded');
+        return "No data available for this project.";
+    }
+    console.log('currentData available:', currentData.length, 'records');
+
+    // Normalize query
+    const lowerQuery = query.toLowerCase().replace(/['’]/g, '').replace(/\s+/g, ' ').trim();
+    console.log('Normalized query:', lowerQuery);
+
+    // Parse dates
+    const dateRegex = /(\d{4}-\d{2}-\d{2})|(\d{2}-\d{2}-\d{4})|(\d{2}\/\d{2}\/\d{4})|(\w+\s+\d{1,2}(?:,\s+\d{4})?)|(\d{1,2}\s+\w+\s+\d{4})/gi;
+    const dateMatches = [...lowerQuery.matchAll(dateRegex)];
+    let dates = [];
+
+    console.log('Date matches:', dateMatches.map(m => m[0]));
+    dateMatches.forEach(match => {
+        const dateStr = match[0];
+        let targetDate;
+
+        if (dateStr.match(/\d{4}-\d{2}-\d{2}/)) {
+            targetDate = DateTime.fromISO(dateStr, { zone: 'America/New_York' });
+            console.log('Parsed ISO date:', dateStr, '->', targetDate.isValid ? targetDate.toISODate() : 'Invalid');
+        } else if (dateStr.match(/\d{2}-\d{2}-\d{4}/)) {
+            targetDate = DateTime.fromFormat(dateStr, 'MM-dd-yyyy', { zone: 'America/New_York' });
+            console.log('Parsed MM-DD-YYYY:', dateStr, '->', targetDate.isValid ? targetDate.toISODate() : 'Invalid');
+        } else if (dateStr.match(/\d{2}\/\d{2}\/\d{4}/)) {
+            targetDate = DateTime.fromFormat(dateStr, 'MM/dd/yyyy', { zone: 'America/New_York' });
+            console.log('Parsed MM/DD/YYYY:', dateStr, '->', targetDate.isValid ? targetDate.toISODate() : 'Invalid');
+        } else if (dateStr.match(/\w+\s+\d{1,2}(?:,\s+\d{4})?/) || dateStr.match(/\d{1,2}\s+\w+\s+\d{4}/)) {
+            let format = dateStr.includes(',') ? 'MMMM d, yyyy' : 'MMMM d yyyy';
+            if (!dateStr.includes('20')) {
+                const currentYear = DateTime.now().setZone('America/New_York').year;
+                targetDate = DateTime.fromFormat(`${dateStr}, ${currentYear}`, 'MMMM d, yyyy', { zone: 'America/New_York' });
+                console.log('Parsed natural (no year):', dateStr, `+ ${currentYear} ->`, targetDate.isValid ? targetDate.toISODate() : 'Invalid');
+            } else {
+                targetDate = DateTime.fromFormat(dateStr, format, { zone: 'America/New_York' });
+                console.log('Parsed natural:', dateStr, '->', targetDate.isValid ? targetDate.toISODate() : 'Invalid');
+            }
+        }
+
+        if (targetDate && targetDate.isValid) {
+            dates.push(targetDate);
+            console.log('Added date:', targetDate.toISODate());
+        } else {
+            console.log('Skipped invalid date:', dateStr);
+        }
+    });
+
+    // Deduplicate and sort dates
+    dates = [...new Set(dates.map(d => d.toISODate()))].map(d => DateTime.fromISO(d, { zone: 'America/New_York' }));
+    console.log('Final dates:', dates.map(d => d.toISODate()));
+
+    // Define valid fields from JSON
+    const validFields = ['total', 'passed', 'failed', 'broken', 'skipped', 'unknown'];
+    const fieldAliases = {
+        'total': ['total', 'tests', 'test'],
+        'passed': ['passed', 'pass'],
+        'failed': ['failed', 'fail', 'failure'],
+        'broken': ['broken', 'broke'],
+        'skipped': ['skipped', 'skip'],
+        'unknown': ['unknown']
+    };
+
+    // Find matching field
+    let targetField = null;
+    for (const field of validFields) {
+        if (fieldAliases[field].some(alias => lowerQuery.includes(alias))) {
+            targetField = field;
+            break;
+        }
+    }
+    console.log('Target field:', targetField || 'None');
+
+    // Handle single-date queries
+    if (dates.length === 1) {
+        const dateStr = dates[0].toISODate();
+        console.log('Checking single-date query for:', dateStr);
+        const dailyData = currentData.find(item => item.Date === dateStr);
+        console.log('Data found:', !!dailyData, dailyData ? dailyData : 'None');
+
+        if (!dailyData) {
+            console.log('No data for date:', dateStr);
+            return `No data available for ${dates[0].toFormat('MMMM d, yyyy')}.`;
+        }
+
+        if (targetField) {
+            console.log(`Matched: ${targetField} query`);
+            const value = dailyData[targetField.charAt(0).toUpperCase() + targetField.slice(1)];
+            return `The number of ${targetField} tests on ${dates[0].toFormat('MMMM d, yyyy')} is ${value}.`;
+        }
+
+        if (lowerQuery.includes('compare') && (lowerQuery.includes('pass') || lowerQuery.includes('passed')) && (lowerQuery.includes('fail') || lowerQuery.includes('failed'))) {
+            console.log('Matched: Compare pass/fail rate');
+            const total = parseInt(dailyData.Total) || 1;
+            const passRate = Math.round((parseInt(dailyData.Passed) / total) * 100);
+            const failRate = Math.round((parseInt(dailyData.Failed) / total) * 100);
+            return `On ${dates[0].toFormat('MMMM d, yyyy')}: Pass rate is ${passRate}%, Fail rate is ${failRate}%.`;
+        }
+
+        console.log('Matched: General single-date');
+        return `On ${dates[0].toFormat('MMMM d, yyyy')}: Total: ${dailyData.Total}, Passed: ${dailyData.Passed}, Failed: ${dailyData.Failed}, Broken: ${dailyData.Broken}, Skipped: ${dailyData.Skipped}, Unknown: ${dailyData.Unknown}.`;
+    }
+
+    // Handle two-date comparison queries
+    if (dates.length >= 2 && lowerQuery.includes('compare')) {
+        const date1Str = dates[0].toISODate();
+        const date2Str = dates[1].toISODate();
+        console.log('Checking two-date query - Date1:', date1Str, 'Date2:', date2Str);
+        const data1 = currentData.find(item => item.Date === date1Str);
+        const data2 = currentData.find(item => item.Date === date2Str);
+        console.log('Data found - Date1:', !!data1, 'Date2:', !!data2);
+
+        if (!data1 && !data2) {
+            console.log('No data for both dates');
+            return `No data available for ${dates[0].toFormat('MMMM d, yyyy')} or ${dates[1].toFormat('MMMM d, yyyy')}.`;
+        }
+        if (!data1) {
+            console.log('No data for date1');
+            return `No data available for ${dates[0].toFormat('MMMM d, yyyy')}.`;
+        }
+        if (!data2) {
+            console.log('No data for date2');
+            return `No data available for ${dates[1].toFormat('MMMM d, yyyy')}.`;
+        }
+
+        if (targetField && fieldAliases[targetField].some(alias => lowerQuery.includes(alias))) {
+            console.log(`Matched: Compare ${targetField}`);
+            const fieldKey = targetField.charAt(0).toUpperCase() + targetField.slice(1);
+            return `${fieldKey} on ${dates[0].toFormat('MMMM d, yyyy')}: ${data1[fieldKey]}; ${fieldKey} on ${dates[1].toFormat('MMMM d, yyyy')}: ${data2[fieldKey]}.`;
+        }
+
+        console.log('Matched: General comparison');
+        return `On ${dates[0].toFormat('MMMM d, yyyy')}: Passed: ${data1.Passed}, Failed: ${data1.Failed}. On ${dates[1].toFormat('MMMM d, yyyy')}: Passed: ${data2.Passed}, Failed: ${data2.Failed}.`;
+    }
+
+    // Handle weekly queries
+    if ((lowerQuery.includes('week') || lowerQuery.includes('weekly')) && dates.length >= 1) {
+        const endDate = dates[0];
+        const startDate = endDate.minus({ days: 6 });
+        console.log('Checking weekly query - Start:', startDate.toISODate(), 'End:', endDate.toISODate());
+
+        const weekData = currentData.filter(item => {
+            const itemDate = DateTime.fromISO(item.Date, { zone: 'America/New_York' });
+            return itemDate >= startDate && itemDate <= endDate;
+        });
+        console.log('Weekly data found:', weekData.length, 'records');
+
+        if (weekData.length === 0) {
+            console.log('No weekly data');
+            return `No data available for the week of ${endDate.toFormat('MMMM d, yyyy')}.`;
+        }
+
+        const totalTests = weekData.reduce((sum, item) => sum + parseInt(item.Total), 0);
+        const totalPassed = weekData.reduce((sum, item) => sum + parseInt(item.Passed), 0);
+        const avgPassRate = totalTests ? Math.round((totalPassed / totalTests) * 100) : 0;
+
+        if (lowerQuery.includes('pass') || lowerQuery.includes('passed') || lowerQuery.includes('rate')) {
+            console.log('Matched: Weekly pass rate');
+            return `The average pass rate for the week of ${endDate.toFormat('MMMM d, yyyy')} is ${avgPassRate}%.`;
+        }
+        if (lowerQuery.includes('total') || lowerQuery.includes('test') || lowerQuery.includes('tests')) {
+            console.log('Matched: Weekly total tests');
+            return `The total number of tests for the week of ${endDate.toFormat('MMMM d, yyyy')} is ${totalTests}.`;
+        }
+        console.log('Matched: Weekly general');
+        return `For the week of ${endDate.toFormat('MMMM d, yyyy')}: Total tests: ${totalTests}, Average pass rate: ${avgPassRate}%.`;
+    }
+
+    console.log('Error: Query not recognized');
+    return "Sorry, I didn't understand your question. Please ask about the project data, e.g., 'What’s the total tests on 2025-04-21?' or 'Compare the passing between 2025-04-21 and 2025-04-22?'";
+}
+
 // Initialize today's date for date inputs
 document.addEventListener('DOMContentLoaded', function() {
     const today = DateTime.now().setZone('America/New_York');
     dailyDateInput.value = today.toISODate();
     weeklyDateInput.value = today.toISODate();
+    chatbotLogo.classList.add('hidden'); // Hide chatbot logo on login page
 });
